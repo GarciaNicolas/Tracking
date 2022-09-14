@@ -1,15 +1,3 @@
-"""
-To Do List:
-    -Generalizar el programa
-    -Generalizar nombre de archivo
-    -Abrir desde Consola
-    -Ver por que pausa mal el video
-    -Ver que metodo de trackeo es mejor
-    -Margen Inferior no finaliza tracker
-    -Cambiar el recorte del video
-
-"""
-
 import argparse
 import cv2 as cv
 from random import randint
@@ -39,13 +27,11 @@ datosRecolectados = open(args['nombreArchivo']+'.txt','w')
 while video.isOpened():
     success, frame = video.read()
     
-    #frame = frame[85:720, 200:1045] #CAMBIAR
     dimensionDeImagen = frame.shape
     
     if success:
         frameNumero += 1
         regionesDeInteres = []
-        #colores = []
         primerTecla = cv.waitKey(1) & 0xff
 
         #-Seleccion de Trackers-------------
@@ -62,7 +48,6 @@ while video.isOpened():
                 objetoTrackeado +=1
                 coloresUsados.append(color)
                 informacionGlobal.append([objetoTrackeado,True])
-                #colores.append(color)
 
                 print("Para seleccionar otra region presione cualquier tecla.")
                 print("Para terminar de seleccionar presione -> f .")
