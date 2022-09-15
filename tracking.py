@@ -25,7 +25,6 @@ video = cv.VideoCapture('media/' + args['dirVideo'])
 multiTracker = cv.legacy.MultiTracker_create()
 coloresUsados = []
 informacionGlobal = [] #[[objetoTrackeado, esTrackerValido]]
-regionesDeInteresGlobal = []
 frameNumero = 0
 objetoTrackeado = 0
 flagPausa = False
@@ -39,13 +38,11 @@ while video.isOpened():
     
     if success:
         frameNumero += 1
-        regionesDeInteres = []
         
         primerTecla = cv.waitKey(1) & 0xff
         #-Seleccion de Trackers-------------
         if primerTecla == ord(" ") or flagPausa: # Espacio para pausar
             zonasDeInteres = cv.selectROIs("MultiTracker", frameConObjetos)         
-            regionesDeInteresGlobal.extend(zonasDeInteres)
                 
             for zona in zonasDeInteres:
                 color = (randint(50, 255), randint(50, 255), randint(50, 255))
