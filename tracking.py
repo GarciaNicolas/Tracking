@@ -2,9 +2,16 @@ import argparse
 import cv2 as cv
 from random import randint
 
+def reescalarImagen (imagen, porcentajeDeEscalado):
+    largo = int(imagen.shape[1] * porcentajeDeEscalado / 100)
+    ancho = int(imagen.shape[0] * porcentajeDeEscalado / 100)
+    dimension = (largo, ancho)
+    imagen = cv.resize(imagen, dimension, interpolation= cv.INTER_AREA)
+    return imagen
+
 def estaDentro(inicioRectangulo, finRectangulo, dimensionImagen):
    # True si el rectangulo esta dentro de la imagen y además no toca ningún borde
-    return ((0 < inicioRectangulo[0]< dimensionImagen[0]) and (0 < inicioRectangulo[1]< dimensionImagen[1])) and ((0 < finRectangulo[0]< dimensionImagen[0]) and (0 < finRectangulo[1]< dimensionImagen[1]))
+    return ((0 < inicioRectangulo[0]< dimensionImagen[1]) and (0 < inicioRectangulo[1]< dimensionImagen[0])) and ((0 < finRectangulo[0]< dimensionImagen[1]) and (0 < finRectangulo[1]< dimensionImagen[0]))
 
 ap = argparse.ArgumentParser()
 ap.add_argument('-d','--dirVideo', required=True, help='Directorio del video')
@@ -27,13 +34,14 @@ datosRecolectados = open(args['nombreArchivo']+'.txt','w')
 while video.isOpened():
     success, frame = video.read()
     
+    frame = reescalarImagen(frame, 65)
     dimensionDeImagen = frame.shape
     
     if success:
         frameNumero += 1
         regionesDeInteres = []
+        
         primerTecla = cv.waitKey(1) & 0xff
-
         #-Seleccion de Trackers-------------
         if primerTecla == ord(" ") or flagPausa: # Espacio para pausar
             zonasDeInteres = cv.selectROIs("MultiTracker", frameConObjetos)         
@@ -41,8 +49,6 @@ while video.isOpened():
                 
             for zona in zonasDeInteres:
                 color = (randint(50, 255), randint(50, 255), randint(50, 255))
-                #while color in coloresUsados: #Me aseguro que va a ser un color diferente
-                #    color = (randint(50, 255), randint(50, 255), randint(50, 255))
                 coloresUsados.append(color)
                 objetoTrackeado +=1
                 multiTracker.add(cv.legacy.TrackerCSRT_create(), frame, zona)
@@ -67,10 +73,10 @@ while video.isOpened():
         #--------------------------------------------------------------------
         frameConObjetos = frame.copy()
         cv.imshow("MultiTracker", frame)
-        terminarPrograma = cv.waitKey(1) & 0xff # presionar Q para salir del programa
-        if terminarPrograma == ord("q"):
+        teclaDeControl = cv.waitKey(1) & 0xff 
+        if teclaDeControl == ord("q"): # presionar q para salir del programa
             break
-        elif terminarPrograma == ord(" "):
+        elif teclaDeControl == ord(" "): # presionar Espacio para salir del programa
             flagPausa = True
         
 datosRecolectados.close()
