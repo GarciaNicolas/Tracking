@@ -21,7 +21,7 @@ informacionGlobal = [] #[[objetoTrackeado, esTrackerValido]]
 regionesDeInteresGlobal = []
 frameNumero = 0
 objetoTrackeado = 0
-
+flagPausa = False
 datosRecolectados = open(args['nombreArchivo']+'.txt','w')
 
 while video.isOpened():
@@ -35,31 +35,22 @@ while video.isOpened():
         primerTecla = cv.waitKey(1) & 0xff
 
         #-Seleccion de Trackers-------------
-        if primerTecla == ord(" "): # Espacio para pausar
-            while True:
-                zonaDeInteres = cv.selectROI("MultiTracker", frame)         
-                regionesDeInteres.append(zonaDeInteres)
-                regionesDeInteresGlobal.append(zonaDeInteres)
+        if primerTecla == ord(" ") or flagPausa: # Espacio para pausar
+            zonasDeInteres = cv.selectROIs("MultiTracker", frameConObjetos)         
+            regionesDeInteresGlobal.extend(zonasDeInteres)
                 
+            for zona in zonasDeInteres:
                 color = (randint(50, 255), randint(50, 255), randint(50, 255))
-                while color in coloresUsados: #Me aseguro que va a ser un color diferente
-                    color = (randint(50, 255), randint(50, 255), randint(50, 255))
-                
-                objetoTrackeado +=1
+                #while color in coloresUsados: #Me aseguro que va a ser un color diferente
+                #    color = (randint(50, 255), randint(50, 255), randint(50, 255))
                 coloresUsados.append(color)
+                objetoTrackeado +=1
+                multiTracker.add(cv.legacy.TrackerCSRT_create(), frame, zona)
                 informacionGlobal.append([objetoTrackeado,True])
-
-                print("Para seleccionar otra region presione cualquier tecla.")
-                print("Para terminar de seleccionar presione -> f .")
-
-                segundaTecla = cv.waitKey(0) & 0xff
-                if segundaTecla == ord("f"): #F para finalizar la selección e iniciar el video
-                    break
-        for region in regionesDeInteres:
-            multiTracker.add(cv.legacy.TrackerCSRT_create(), frame, region)
         #---------------------------------------------------------
         
         #-Validación de trackers, mostrar en pantalla y escribir datos------
+        flagPausa = False
         _, cajas = multiTracker.update(frame)
 
         for i, caja in enumerate(cajas):
@@ -74,11 +65,13 @@ while video.isOpened():
             else:
                 informacionGlobal[i][1] = False
         #--------------------------------------------------------------------
-
+        frameConObjetos = frame.copy()
         cv.imshow("MultiTracker", frame)
         terminarPrograma = cv.waitKey(1) & 0xff # presionar Q para salir del programa
         if terminarPrograma == ord("q"):
             break
+        elif terminarPrograma == ord(" "):
+            flagPausa = True
         
 datosRecolectados.close()
 video.release()
