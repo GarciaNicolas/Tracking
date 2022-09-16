@@ -22,11 +22,9 @@ videoPath = 'src/encierroSanFermin.mp4'
 
 video = cv.VideoCapture('media/' + args['dirVideo'])
 
-multiTracker = cv.legacy.MultiTracker_create()
-coloresUsados = []
-informacionGlobal = [] #[[objetoTrackeado, esTrackerValido]]
+informacionTrackers = [] #[(tracker,color, identificador)]
 frameNumero = 0
-objetoTrackeado = 0
+identificador = 0
 flagPausa = False
 datosRecolectados = open(args['nombreArchivo']+'.txt','w')
 
@@ -45,28 +43,28 @@ while video.isOpened():
             zonasDeInteres = cv.selectROIs("MultiTracker", frameConObjetos)         
                 
             for zona in zonasDeInteres:
+                tracker = cv.legacy.TrackerCSRT_create()
+                tracker.init(frame, zona)
                 color = (randint(50, 255), randint(50, 255), randint(50, 255))
-                coloresUsados.append(color)
-                objetoTrackeado +=1
-                multiTracker.add(cv.legacy.TrackerCSRT_create(), frame, zona)
-                informacionGlobal.append([objetoTrackeado,True])
+                identificador +=1
+                informacionTrackers.append((tracker,color,identificador))
         #---------------------------------------------------------
         
         #-Validación de trackers, mostrar en pantalla y escribir datos------
+        
         flagPausa = False
-        _, cajas = multiTracker.update(frame)
-
-        for i, caja in enumerate(cajas):
+        for i,(tracker,color,identificador) in enumerate(informacionTrackers):
+            _, caja = tracker.update(frame)
             inicioRectangulo = (int(caja[0]), int(caja[1]))
             finRectangulo = (int(caja[0] + caja[2]), int(caja[1] + caja[3]))
-            if (estaDentro(inicioRectangulo, finRectangulo, dimensionDeImagen)) and informacionGlobal[i][1]:
-                cv.rectangle(frame, inicioRectangulo, finRectangulo, coloresUsados[i], 2, 1)
+            if (estaDentro(inicioRectangulo, finRectangulo, dimensionDeImagen)):
+                cv.rectangle(frame, inicioRectangulo, finRectangulo, color, 2, 1)
                 coordX = (finRectangulo[0] + inicioRectangulo[0])//2
                 coordY = (finRectangulo[1] + inicioRectangulo[1])//2
-                datos = '[F:' + str(frameNumero) + ' X:' + str(coordX) + ' Y:' + str(coordY) + ' I:'+ str(informacionGlobal[i][0]) + ']'
+                datos = '[F:' + str(frameNumero) + ' X:' + str(coordX) + ' Y:' + str(coordY) + ' I:'+ str(identificador) + ']'
                 datosRecolectados.write(datos)
             else:
-                informacionGlobal[i][1] = False               
+                informacionTrackers.pop(i)
         #--------------------------------------------------------------------
         frameConObjetos = frame.copy()
         cv.imshow("MultiTracker", frame)
