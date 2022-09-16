@@ -61,12 +61,12 @@ while video.isOpened():
             finRectangulo = (int(caja[0] + caja[2]), int(caja[1] + caja[3]))
             if (estaDentro(inicioRectangulo, finRectangulo, dimensionDeImagen)) and informacionGlobal[i][1]:
                 cv.rectangle(frame, inicioRectangulo, finRectangulo, coloresUsados[i], 2, 1)
-                coordX = (finRectangulo[1] + inicioRectangulo[1])//2
-                coordY = (finRectangulo[0] + inicioRectangulo[0])//2
+                coordX = (finRectangulo[0] + inicioRectangulo[0])//2
+                coordY = (finRectangulo[1] + inicioRectangulo[1])//2
                 datos = '[F:' + str(frameNumero) + ' X:' + str(coordX) + ' Y:' + str(coordY) + ' I:'+ str(informacionGlobal[i][0]) + ']'
                 datosRecolectados.write(datos)
             else:
-                informacionGlobal[i][1] = False
+                informacionGlobal[i][1] = False               
         #--------------------------------------------------------------------
         frameConObjetos = frame.copy()
         cv.imshow("MultiTracker", frame)
