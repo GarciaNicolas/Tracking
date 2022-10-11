@@ -29,5 +29,5 @@ En la consola: `$ python tracking.py -d 'video.mp4' -n nombreDelArchivo`
 
 ## Devolución de datos
 El programa devuelve un archivo `.txt` con el siguiente formato **(teniendo en cuenta que los _ son espacios)**:<br>
-1. Lo primero que aparece son la dimension de los frames utilizados: *DimensionX_DimensionY*<br>
+1. Lo primero que aparece son la dimension de los frames utilizados: *DimensionX_DimensionY_*<br>
 2. Luego los datos con respecto a los trackes: *FrameNro_Identificador_CoordenadaX_CoordenadaY_*<br>
