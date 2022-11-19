@@ -1,13 +1,24 @@
 '''
 To Do:
--Guardar punto central de trackers durante el loop
 -Intentar hacer reconocimiento por contornos en los otros videos
 
 '''
 
+"""
+Para ejecutar el programa:
+C:\...\Tracking> python tracking.py -v 'nombreDelVideo.extension' -n 'nombreDelArchivo' -r
+
+El parametro -r es opcional, refiere al reescalado del video. Por default es 100.
+
+Ejemplo:
+>python tracking.py -v 'encierroSanFermin.mp4' -n 'datosSanFermin' -r 125
+
+
+"""
+
+
 import argparse
 import cv2 as cv
-from random import randint
 
 def reescalarImagen (imagen, porcentajeDeEscalado):
     largo = int(imagen.shape[1] * porcentajeDeEscalado / 100)
@@ -27,12 +38,12 @@ def pop_all(l):
 
 
 ap = argparse.ArgumentParser()
-ap.add_argument('-d','--dirVideo', required=True, help='Directorio del video')
-ap.add_argument('-n','--nombreArchivo',required=True, help='Nombre del archivo donde guardar los datos')
-ap.add_argument('-r','--reescalado', nargs='?', const=100, type=int, help='Valor de reescalado de video')
+ap.add_argument('-v','--nombreVideo', required=True, help='Nombre del video con su extensión.')
+ap.add_argument('-n','--nombreArchivo',required=True, help='Nombre del archivo donde guardar los datos.')
+ap.add_argument('-r','--reescalado', nargs='?', const=100, type=int, help='Valor de reescalado de video.')
 args = vars(ap.parse_args())
 
-video = cv.VideoCapture('media/' + args['dirVideo'])
+video = cv.VideoCapture('media/' + args['nombreVideo'])
 
 informacionTrackers = [] #[(tracker,color, identificador)]
 frameNumero = 0
@@ -55,9 +66,8 @@ while True:
 
     
     if success:
-        if not flagRepeticion:
-            frame = reescalarImagen(frame, args['reescalado'])
-            dimensiones = frame.shape
+        frame = reescalarImagen(frame, args['reescalado'])
+        dimensiones = frame.shape
         primerTecla = cv.waitKey(1) & 0xff
 
 
@@ -74,16 +84,15 @@ while True:
             for zona in zonasDeInteres:
                 tracker = cv.legacy.TrackerCSRT_create()
                 tracker.init(frame, zona)
-                color = (randint(50, 255), randint(50, 255), randint(50, 255))
                 identificador +=1
-                informacionTrackers.append((tracker,color,identificador))
+                informacionTrackers.append((tracker,identificador))
         #---------------------------------------------------------
         
         flagPausa = False
 
 
         #-Actualizar trackers------
-        for i,(tracker,color,identificador) in enumerate(informacionTrackers):
+        for i,(tracker,identificador) in enumerate(informacionTrackers):
             _, caja = tracker.update(frame)
             inicioRectangulo = (int(caja[0]), int(caja[1]))
             finRectangulo = (int(caja[0] + caja[2]), int(caja[1] + caja[3]))
@@ -94,11 +103,10 @@ while True:
                 
                 puntosEnFrame.append((inicioRectangulo,finRectangulo))
                 
-                cv.rectangle(frame, inicioRectangulo, finRectangulo, color, 2, 1)
+                cv.rectangle(frame, inicioRectangulo, finRectangulo, (255,255,0), 2, 1)
                 
                 puntoMedioX = (finRectangulo[0] + inicioRectangulo[0])//2
                 puntoMedioY = (finRectangulo[1] + inicioRectangulo[1])//2
-                #datos = str(frameNumero) + ' '+ str(identificador) + ' ' + str(puntoMedioX) + ' ' + str(puntoMedioY) + ' '
                 
                 datosRecolectados.write(str(frameNumero) + ' '+ str(identificador) + ' ' + str(puntoMedioX) + ' ' + str(puntoMedioY) + ' ')
 
@@ -121,14 +129,9 @@ while True:
             break
         elif teclaDeControl == ord(" "): # presionar Espacio para salir del programa
             flagPausa = True
-    
-
-
-        
 
         
     else:
-        #break
         frameNumero = 0
         flagRepeticion = True
         pop_all(informacionTrackers)
